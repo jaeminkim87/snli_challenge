@@ -14,5 +14,5 @@ class ManDist(layers):
 		self.result = backend.exp(-backend.sum(backend.abs(x[0] - x[1]), axis=1, keepdims=True))
 		return self.result
 
-	def compute_output_shaape(self, input_shape):
+	def compute_output_shape(self, input_shape):
 		return backend.int_shape(self.result)
