@@ -1,5 +1,6 @@
 from time import time
 import pandas as pd
+import math
 
 import matplotlib
 
@@ -22,12 +23,13 @@ TRAIN_CSV = './data_in/snli_1.0_train.txt'
 
 # Load training set
 train_df = pd.read_csv(TRAIN_CSV, sep='\t')
+train_df = train_df[train_df.gold_label != '-']
 for q in ['sentence1', 'sentence2']:
     train_df[q + '_n'] = train_df[q]
 
 # Make word2vec embeddings
 embedding_dim = 300
-max_seq_length = 20
+max_seq_length = 70
 use_w2v = True
 
 gold_label = {}
@@ -42,8 +44,7 @@ validation_size = int(len(train_df) * 0.1)
 training_size = len(train_df) - validation_size
 
 X = train_df[['sentence1_n', 'sentence2_n']]
-Y = train_df['gold_label'].apply(lambda x: gold_label[x] if x != '-' else None)
-
+Y = train_df['gold_label'].apply(lambda x: gold_label[x])
 
 X_train, X_validation, Y_train, Y_validation = train_test_split(X, Y, test_size=validation_size)
 
@@ -70,6 +71,9 @@ n_hidden = 50
 x = Sequential()
 x.add(Embedding(len(embeddings), embedding_dim,
                 weights=[embeddings], input_shape=(max_seq_length,), trainable=False))
+
+print("X value")
+print(x)
 # CNN
 # x.add(Conv1D(250, kernel_size=5, activation='relu'))
 # x.add(GlobalMaxPool1D())
@@ -82,14 +86,14 @@ x.add(LSTM(n_hidden))
 shared_model = x
 
 # The visible layer
-left_input = Input(shape=(max_seq_length,), dtype='int32')
-right_input = Input(shape=(max_seq_length,), dtype='int32')
+left_input = Input(shape=(max_seq_length,), dtype=tf.float32)
+right_input = Input(shape=(max_seq_length,), dtype=tf.float32)
 
 # Pack it all up into a Manhattan Distance model
 malstm_distance = ManDist()([shared_model(left_input), shared_model(right_input)])
 model = Model(inputs=[left_input, right_input], outputs=[malstm_distance])
 
-model.compile(loss='mean_squared_error', optimizer=tf.keras.optimizers.Adam(), metrics=['accuracy'])
+model.compile(loss='sparse_categorical_crossentropy', optimizer=tf.keras.optimizers.Adam(), metrics=['accuracy'])
 model.summary()
 shared_model.summary()
 

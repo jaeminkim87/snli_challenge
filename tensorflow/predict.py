@@ -10,9 +10,9 @@ from util import ManDist
 TEST_CSV = './data_in/snli_1.0_test.txt'
 
 gold_label = {}
-gold_label['neutral'] = 0
-gold_label['contradiction'] = 1
-gold_label['entailment'] = 2
+gold_label['neutral'] = tf.Variable(0, dtype=tf.int32)
+gold_label['contradiction'] = tf.Variable(1, dtype=tf.int32)
+gold_label['entailment'] = tf.Variable(2, dtype=tf.int32)
 
 # Load training set
 test_df = pd.read_csv(TEST_CSV,  sep='\t')
@@ -21,7 +21,7 @@ for q in ['sentence1', 'sentence2']:
 
 # Make word2vec embeddings
 embedding_dim = 300
-max_seq_length = 20
+max_seq_length = 70
 test_df, embeddings = make_w2v_embeddings(test_df, embedding_dim=embedding_dim, empty_w2v=False)
 
 # Split to dicts and append zero padding.

@@ -69,7 +69,7 @@ def make_w2v_embeddings(df, embedding_dim=300, empty_w2v=False):
         word2vec = EmptyWord2Vec
     else:
         #word2vec = KeyedVectors.load_word2vec_format("./data/GoogleNews-vectors-negative300.bin.gz", binary=True)
-         word2vec = gensim.models.word2vec.Word2Vec.load("./data_out/Quora-Question-Pairs.w2v").wv
+        word2vec = gensim.models.word2vec.Word2Vec.load("./data_out/Quora-Question-Pairs.w2v").wv
 
     for index, row in df.iterrows():
         # Print the number of embedded sentences.
@@ -95,9 +95,9 @@ def make_w2v_embeddings(df, embedding_dim=300, empty_w2v=False):
                 if word not in vocabs:
                     vocabs_cnt += 1
                     vocabs[word] = vocabs_cnt
-                    q2n.append(vocabs_cnt)
+                    q2n.append(float(vocabs_cnt))
                 else:
-                    q2n.append(vocabs[word])
+                    q2n.append(float(vocabs[word]))
 
             # Append question as number representation
             df.at[index, question + '_n'] = q2n
@@ -120,7 +120,7 @@ def split_and_zero_padding(df, max_seq_length):
 
     # Zero padding
     for dataset, side in itertools.product([X], ['left', 'right']):
-        dataset[side] = pad_sequences(dataset[side], padding='pre', truncating='post', maxlen=max_seq_length)
+        dataset[side] = pad_sequences(dataset[side], padding='pre', dtype='float32', truncating='post', maxlen=max_seq_length)
 
     return dataset
 
