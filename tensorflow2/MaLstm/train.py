@@ -2,7 +2,7 @@ import pickle
 import tensorflow as tf
 
 from pathlib import Path
-from mecab import MeCab
+#from mecab import MeCab
 from tqdm import tqdm
 from model.net import MaLSTM
 from model.data import Corpus
@@ -27,9 +27,9 @@ def main():
                                                                                      drop_remainder=True)
     eval = tf.data.TextLineDataset(str(val_path)).batch(batch_size=batch_size, drop_remainder=True)
 
-    tokenizer = MeCab()
-    corpus = Corpus(vocab, tokenizer)
-    malstm = MaLSTM(length, dim, len(vocab))
+    #tokenizer = MeCab()
+    corpus = Corpus(vocab)
+    malstm = MaLSTM(len(vocab), dim, length)
 
     opt = tf.optimizers.Adam(learning_rate=learning_rate)
     loss_fn = tf.losses.SparseCategoricalCrossentropy(from_logits=True)
@@ -51,9 +51,16 @@ def main():
 
         for step, val in tqdm(enumerate(train)):
             sen1, sen2, label = corpus.token2idx(val)
+
             with tf.GradientTape() as tape:
-                logits = malstm(sen1, sen2)
+                logits = malstm([sen1, sen2])
+                print("label")
+                print(label)
+                print("logits")
+                print(logits)
                 train_loss = loss_fn(label, logits)
+                print('train_loss')
+                print(train_loss)
 
             grads = tape.gradient(target=train_loss, sources=malstm.trainable_variables)
             opt.apply_gradients(grads_and_vars=zip(grads, malstm.trainable_variables))
@@ -63,11 +70,29 @@ def main():
 
         tr_loss = train_loss_metric.result()
 
-        tqdm.write(
-            'epoch : {}, tr_acc : {:.3f}%, tr_loss : {:.3f}'.format(epoch + 1,
-                                                                    train_acc_metric.result() * 100,
-                                                                    tr_loss))
+        tf.keras.backend.set_learning_phase(0)
 
+        for step, val in tqdm(enumerate(eval)):
+            sen1, sen2, label = corpus.token2idx(val)
+            with tf.GradientTape() as tape:
+                logits = malstm([sen1, sen2])
+                val_loss = loss_fn(label, logits)
+
+            grads = tape.gradient(target=val_loss, sources=malstm.trainable_variables)
+            opt.apply_gradients(grads_and_vars=zip(grads, malstm.trainable_variables))
+
+            val_loss_metric.update_state(train_loss)
+            val_acc_metric.update_state(label, logits)
+
+        v_loss = train_loss_metric.result()
+
+        tqdm.write(
+            'epoch : {}, tr_acc : {:.3f}%, tr_loss : {:.3f}, val_acc : {:.3f}%, val_loss : {:.3f}'.format(epoch + 1,
+                                                                    train_acc_metric.result() * 100,
+                                                                    tr_loss,
+                                                                    val_acc_metric.result() * 100,
+                                                                    v_loss
+                                                                    ))
 
 if __name__ == "__main__":
     main()
