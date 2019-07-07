@@ -3,7 +3,7 @@ from torchtext import datasets
 from torchtext.vocab import GloVe
 
 from nltk import word_tokenize
-import numpy as np
+
 
 class SNLI():
 	def __init__(self, args):
@@ -14,4 +14,6 @@ class SNLI():
 		self.TEXT.build_vocab(self.train, self.dev, self.test, vectors=GloVe(name='6 ', dim=300))
 		self.LABEL.build_vocab(self.train)
 
-		self.train_iter, self.dev_iter, self.test_iter = data.BucketIterator.splits((self.train, self.dev, self.test), batch_size=args.batch_size, device=args.gpu)
+		self.train_iter, self.dev_iter, self.test_iter = data.BucketIterator.splits((self.train, self.dev, self.test),
+		                                                                            batch_size=args.batch_size,
+		                                                                            device=args.gpu)

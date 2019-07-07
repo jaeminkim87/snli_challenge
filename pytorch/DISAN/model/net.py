@@ -5,10 +5,11 @@ import torch.nn.init as init
 from model.ops import DiSAN
 from model.utils import get_rep_mask
 
+
 class NN4SNLI(nn.Module):
 	def __init__(self, args, data):
 		super(NN4SNLI, self).__init__()
-		
+
 		self.d_e = args.d_e
 		self.d_h = args.d_h
 		self.device = args.device

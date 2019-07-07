@@ -1,15 +1,17 @@
 import argparse
 import os
 import torch
+import copy
 
 from torch import nn, optim
-from torch.optim.lr_schedular import StepLR
+from torch.optim.lr_scheduler import StepLR
 from tensorboardX import SummaryWriter
 from time import gmtime, strftime
 
-from model import NN4SNLI
-from data import SNLI
+from model.net import NN4SNLI
+from model.data import SNLI
 from test import test
+
 
 def train(args, data):
 	model = NN4SNLI(args, data)
@@ -37,7 +39,7 @@ def train(args, data):
 		last_epoch = present_epoch
 
 		pred = model(batch)
-		
+
 		optimizer.zero_grad()
 		batch_loss = criterion(pred, batch.label)
 		loss += batch_loss.item()
@@ -47,7 +49,7 @@ def train(args, data):
 		_, pred = pred.max(dim=1)
 		acc += (pred == batch.label).sum().float()
 		size += len(pred)
-		
+
 		if (i + 1) % args.print_freq == 0:
 			acc /= size
 			acc = acc.cpu().item()
@@ -62,32 +64,34 @@ def train(args, data):
 			writer.add_scalar('loss/test', test_loss, c)
 			writer.add_scalar('acc/test', test_acc, c)
 
-			print(f'train loss: {loss:.3f} / dev loss: {dev_loss:.3f} / test loss: {test_loss:.3f}' f' / train acc: {acc:.3f} / dev acc: {dev_acc:.3f} / test acc: {test_acc:.3f}')
+			print(
+				f'train loss: {loss:.3f} / dev loss: {dev_loss:.3f} / test loss: {test_loss:.3f}' f' / train acc: {acc:.3f} / dev acc: {dev_acc:.3f} / test acc: {test_acc:.3f}')
 			if dev_acc > max_dev_acc:
 				max_dev_acc = dev_acc
 				max_test_acc = test_acc
 				best_model = copy.deepcopy(model)
 
-			acc,loss,size = 0,0,0
+			acc, loss, size = 0, 0, 0
 			model.train()
 	writer.close()
-	
+
 	print(f'max dev acc: {max_dev_acc:.3f} / max test acc: {max_test_acc:.3f}')
 
 	return best_model
 
+
 def main():
 	parser = argparse.ArgumentParser()
-	parser = add_argument('--epoch', default=10, type=int)
-	parser = add_argument('--batch-size', default=32, type=int)
-	parser = add_argument('--data-type', default='SNLI')
-	parser = add_argument('--gpu', default=0, type=int)
-	parser = add_argument('--learning-rate', default=0.5, type=float)
-	parser = add_argument('--print-freq', default=3000, type=int)
-	parser = add_argument('--weight-decay', default=5e-5, type=float)
-	parser = add_argument('--word-dim', default=300, type=int)
-	parser = add_argument('--d-e', default=300, type=int)
-	parser = add_argument('--d-h', default=300, type=int)
+	parser.add_argument('--epoch', default=10, type=int)
+	parser.add_argument('--batch-size', default=32, type=int)
+	parser.add_argument('--data-type', default='SNLI')
+	parser.add_argument('--gpu', default=0, type=int)
+	parser.add_argument('--learning-rate', default=0.5, type=float)
+	parser.add_argument('--print-freq', default=3000, type=int)
+	parser.add_argument('--weight-decay', default=5e-5, type=float)
+	parser.add_argument('--word-dim', default=300, type=int)
+	parser.add_argument('--d-e', default=300, type=int)
+	parser.add_argument('--d-h', default=300, type=int)
 
 	args = parser.parse_args()
 
@@ -101,7 +105,7 @@ def main():
 		setattr(args, 'device', "cuda:0")
 	else:
 		setattr(atgs, 'device', "cpu")
-	
+
 	print("train start!")
 	best_model = train(args, data)
 
@@ -110,7 +114,6 @@ def main():
 	torch.save(best_model.state_dict(), f'saved_models/DiSAN_{args.data_type}_{args.model_time}.pt')
 
 	print('traininig finished!')
-	
 
 
 if __name__ == '__main__':
