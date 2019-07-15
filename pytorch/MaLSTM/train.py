@@ -1,11 +1,9 @@
 import argparse
 import torch
-import torch.nn as nn, optim
 
-from preprocessing.preprocessing import preprocessing
-from preprecessing.vocab import build_vocab
 
 def train(args, data):
+ return ""
 
 def main():
 	parser = argparse.ArgumentParser()

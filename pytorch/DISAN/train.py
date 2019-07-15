@@ -104,7 +104,7 @@ def main():
 	if args.gpu > -1:
 		setattr(args, 'device', "cuda:0")
 	else:
-		setattr(atgs, 'device', "cpu")
+		setattr(args, 'device', "cpu")
 
 	print("train start!")
 	best_model = train(args, data)

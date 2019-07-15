@@ -16,7 +16,7 @@ class NN4SNLI(nn.Module):
 
 		self.word_emb = nn.Embedding(args.word_vocab_size, args.word_dim, padding_idx=1)
 		self.word_emb.weight.data.copy_(data.TEXT.vocab.vectors)
-		welf.word_emb.weight.requires_grad = True
+		self.word_emb.weight.requires_grad = True
 
 		nn.init.uniform_(self.word_emb.weight.data[0], -0.05, 0.05)
 

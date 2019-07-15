@@ -9,11 +9,11 @@ class preprocessing():
     """preprocessing"""
 
     def __init__(self, data_path, options) -> None:
-        file_path = options['filepath']
+        file_path = options.filepath
         self.data_path = data_path
-        self.train = file_path['train']
-        self.test = file_path['test']
-        self.dev = file_path['dev']
+        self.train = file_path.train
+        self.test = file_path.test
+        self.dev = file_path.dev
 
     def getData(self):
         traing_data = self.data_path + '/' + self.train
