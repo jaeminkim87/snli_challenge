@@ -39,7 +39,7 @@ class NN4SNLI(nn.Module):
 		_, p_seq_len = premise.size()
 		_, h_seq_len = hypothesis.size()
 		p_rep_mask = get_rep_mask(pre_lengths, p_seq_len, self.device)
-		h_rep_mask = get_rep_mask(hypt_lengths, h_seq_len, self.device)
+		h_rep_mask = get_rep_mask(hypo_lengths, h_seq_len, self.device)
 
 		pre_x = self.word_emb(premise)
 		hypo_x = self.word_emb(hypothesis)
