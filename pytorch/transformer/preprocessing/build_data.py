@@ -5,7 +5,7 @@ from sklearn.model_selection import train_test_split
 from typing import Tuple, Callable, List
 
 
-class preprocessing():
+class Preprocessing():
     """preprocessing"""
 
     def __init__(self, data_path, options) -> None:
@@ -15,15 +15,15 @@ class preprocessing():
         self.test = file_path.test
         self.dev = file_path.dev
 
-    def getData(self):
+    def get_data(self):
         traing_data = self.data_path + '/' + self.train
         test_data = self.data_path + '/' + self.test
         dev_data = self.data_path + '/' + self.dev
 
         return traing_data, test_data, dev_data
 
-    def makeDataFile(self):
-        train_data, test_data, dev_data = self.getData()
+    def make_datafile(self):
+        train_data, test_data, dev_data = self.get_data()
         data = pd.read_csv(train_data, sep='\t').loc[:, ['sentence1', 'sentence2', 'gold_label']]
         data = data[data.gold_label != '-']
         train_split, val_split = train_test_split(data, test_size=0.2, shuffle=True, random_state=777)
