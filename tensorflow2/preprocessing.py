@@ -14,9 +14,9 @@ data = data[data.gold_label != '-']
 # train, valid 파일을 8:2로 나눔
 train, eval = train_test_split(data, test_size=0.2, shuffle=True, random_state=777)
 # train 데이터 tab으로 저장
-train.to_csv(Path.cwd() / 'data_in' / 'train.txt', sep='\t', index=False, header=False)
+train.to_csv(Path.cwd() / 'data_in' / 'train.txt', sep='\t', index=False)
 # valid 데이터 tab으로 저장
-eval.to_csv(Path.cwd() / 'data_in' / 'val.txt', sep='\t', index=False, header=False)
+eval.to_csv(Path.cwd() / 'data_in' / 'val.txt', sep='\t', index=False)
 
 #test 데이터 path
 test_data = Path.cwd() / 'data_in' / 'snli_1.0_test.txt'
@@ -25,4 +25,4 @@ data = pd.read_csv(test_data, sep='\t').loc[:, ['sentence1', 'sentence2', 'gold_
 # test data에서 Nan 값 지우고
 #data = data.loc[data['gold_label'].isin(['-']).apply(lambda elm: not elm), :]
 # test 데이터 tab으로 저장
-data.to_csv(Path.cwd() / 'data_in' / 'test.txt', sep='\t', index=False, header=False)
+data.to_csv(Path.cwd() / 'data_in' / 'test.txt', sep='\t', index=False)
