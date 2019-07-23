@@ -3,6 +3,7 @@ import argparse
 import torch
 import torch.nn as nn
 import nltk
+import matplotlib.pyplot as plt
 
 from torch.autograd import Variable
 from tqdm import tqdm
@@ -17,6 +18,7 @@ from model.metric import evaluate, acc
 from torch.nn.utils import clip_grad_norm_
 
 from preprocessing.build_data import Preprocessing
+from preprocessing.build_vocab import Build_Vocab
 
 
 # from build_vocab import Build_Vocab
@@ -42,11 +44,11 @@ def main():
     # parser.add_argument('--build_vocab', default=False)
 
     args = parser.parse_args()
-    #p = Preprocessing(args)
-    #p.make_datafile()
+    # p = Preprocessing(args)
+    # p.make_datafile()
 
-    # v = Build_Vocab(args)
-    # v.make_vocab()
+    v = Build_Vocab(args)
+    v.make_vocab()
 
     with open(args.data_path + '/' + 'vocab.pkl', mode='rb') as io:
         vocab = pickle.load(io)
@@ -64,11 +66,8 @@ def main():
     dev_ds = Corpus(args.data_path + '/dev.txt', tokenizer.split_and_transform)
     dev_dl = DataLoader(dev_ds, batch_size=args.batch_size, shuffle=True, num_workers=4, drop_last=True)
 
-    loss_fn = nn.CrossEntropyLoss()
     opt = optim.Adam(params=model.parameters(), lr=args.learning_rate)
-    # optimizer = transformer.ScheduledOptim(
-    #     torch.optim.Adam(filter(lambda x: x.requires_grad, snli.parameters()), betas=(0.9, 0.98), eps=1e-09),
-    #     config.d_embed, 4000)
+    loss_fn = nn.CrossEntropyLoss()
     scheduler = ReduceLROnPlateau(opt, patience=5)
     device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
     model.to(device)
@@ -95,6 +94,7 @@ def main():
             tr_acc += mb_acc.item()
 
             # if (epoch * len(tr_dl) + step) % args.global_step == 0:
+            #     print("epoch : ", epoch + 1, " step : ", step, " loss : ", tr_loss.item(), "acc : ", tr_acc.item())
             #     val_loss = evaluate(model, val_dl, {'loss': loss_fn}, device)['loss']
             #     # writer.add_scalars('loss', {'train': tr_loss / (step + 1),
             #     #                             'val': val_loss}, epoch * len(tr_dl) + step)
@@ -105,8 +105,8 @@ def main():
             tr_acc /= (step + 1)
 
             tr_summ = {'loss': tr_loss, 'acc': tr_acc}
-            #val_summ = evaluate(model, val_dl, {'loss': loss_fn, 'acc': acc}, device)
-            #scheduler.step(val_summ['loss'])
+            # val_summ = evaluate(model, val_dl, {'loss': loss_fn, 'acc': acc}, device)
+            # scheduler.step(val_summ['loss'])
             tqdm.write('epoch : {}, tr_loss: {:.3f}, tr_acc: {:.2%}'.format(epoch + 1, tr_summ['loss'],
                                                                         tr_summ['acc']))
             # tqdm.write('epoch : {}, tr_loss: {:.3f}, val_loss: '
@@ -114,8 +114,8 @@ def main():
             #                                                             val_summ['loss'],
             #                                                             tr_summ['acc'], val_summ['acc']))
 
-            #val_loss = val_summ['loss']
-            #is_best = val_loss < best_val_loss
+            # val_loss = val_summ['loss']
+            # is_best = val_loss < best_val_loss
 
             # if is_best:
             #     state = {'epoch': epoch + 1,
@@ -123,11 +123,24 @@ def main():
             #              'opt_state_dict': opt.state_dict()}
             #     summary = {'tr': tr_summ, 'val': val_summ}
 
-                # manager.update_summary(summary)
-                # manager.save_summary('summary.json')
-                # manager.save_checkpoint(state, 'best.tar')
+            # manager.update_summary(summary)
+            # manager.save_summary('summary.json')
+            # manager.save_checkpoint(state, 'best.tar')
 
             #    best_val_loss = val_loss
+
+    # Loss 그래프
+    plt.plot([1, 2, 3, 4, 5, 6, 7, 8, 9, 10], tr_summ['loss'], 'r--')
+    plt.legend(['Training Loss'])
+    plt.xlabel('Step')
+    plt.ylabel('Loss')
+    plt.show()
+
+    # Acc 그래프
+    plt.plot([1, 2, 3, 4, 5, 6, 7, 8, 9, 10], tr_summ['acc'], 'b--')
+    plt.plot([1, 2, 3, 4, 5, 6, 7, 8, 9, 10], val_summ['acc'], 'g--')
+    plt.legend(['Tr acc', 'Val acc'])
+    plt.show()
 
 
 if __name__ == '__main__':

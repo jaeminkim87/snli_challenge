@@ -36,19 +36,14 @@ class Transformer(nn.Module):
         self.len_vocab = len(vocab)
         self.nhead = nhead
 
-        self.leaky_relu = nn.LeakyReLU(negative_slope=0.2, inplace=True)
         self.dropout = nn.Dropout(p=args.dropout)
-        dim_size = int(args.word_dim) * 2 * 2
-        self.dense1 = nn.Linear(self.d_model, args.hidden_size)
         self.dense2 = nn.Linear(self.d_model, 1)
         self.dense3 = nn.Linear(self.d_model, args.classes)
         self.max_pool = nn.MaxPool1d(args.word_max_len)
 
-    def __max_pooling(self, out):
-        temp_out = out.permute(0, 2, 1) # [seq, batch, dim] -> [batch, dim, seq]
-        output = self.max_pool(temp_out) # [batch, dim, seq = 1]
-        u = output.squeeze(2) # [batch, dim, seq = 1] -> [batch, dim]
-        return u
+        self.dense_1 = nn.Linear(128, 1)
+        self.dense_3 = nn.Linear(128, 3)
+        self.relu = nn.ReLU(inplace=True)
 
     def forward(self, src, target, src_mask=None, target_mask=None,
                 memory_mask=None, src_key_padding_mask=None, target_key_padding_mask=None,
@@ -64,37 +59,17 @@ class Transformer(nn.Module):
 
 
         prem = self.encoder(src, mask=src_mask, src_key_padding_mask=src_key_padding_mask)
-        #print("prem : {}".format(prem.size()))
-        # prem = self.__max_pooling(prem)
-        print(prem)
-
         hypo = self.encoder(target, mask=target_mask, src_key_padding_mask=target_key_padding_mask)
-        #print("hypo : {}".format(hypo.size()))
-        # hypo = self.__max_pooling(hypo)
-        print(hypo)
 
         prem = prem.view(self.batch_size, self.d_model, -1)
         similarity = prem @ hypo
 
-        #similarity = torch.cat([prem, hypo, torch.abs(prem - hypo), prem * hypo], 1)
-        #print("similarity : {}".format(similarity.size()))
-        #fc = self.dropout(similarity)
-        #print("fc : {}".format(fc.size()))
-        #fc = self.dense1(fc)
-        #print(fc.size())
-        #fc = F.relu(fc, inplace=True)
-        #print(fc.size())
+        similarity = self.dense_1(similarity)
+        similarity = similarity.view(self.batch_size, -1)
+        similarity = self.relu(similarity)
 
-        #fc = self.dropout(fc)
-        #print(fc.size())
-        fc = self.dense2(similarity)
-        #print(fc.size())
-        fc = fc.view(self.batch_size, -1)
-        fc = F.relu(fc, inplace=True)
-        #print(fc.size())
+        out = self.dense_3(similarity)
 
-        out = self.dense3(fc)
-        #print(out.size())
         return out
 
 

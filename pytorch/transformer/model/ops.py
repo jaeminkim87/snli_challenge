@@ -28,30 +28,6 @@ class TransformerEncoder(nn.Module):
 
         return output
 
-
-class TransformerDecoder(nn.Module):
-    def __init__(self, decoder_layer, num_layers, norm=None):
-        super(TransformerDecoder, self).__init__()
-        self.layers = _get_clones(decoder_layer, num_layers)
-        self.num_layers = num_layers
-        self.norm = norm
-
-    def forward(self, target, memory, target_mask=None, memory_mask=None, target_key_padding_mask=None,
-                memory_key_padding_mask=None):
-        output = target
-
-        for i in range(self.num_layers):
-            output = self.layers[i](output, memory, target_mask=target_mask,
-                                    memory_mask=memory_mask,
-                                    target_key_padding_mask=target_key_padding_mask,
-                                    memory_key_padding_mask=memory_key_padding_mask)
-
-        if self.norm:
-            output = self.norm(output)
-
-        return output
-
-
 class TransformerEncoderLayer(nn.Module):
     def __init__(self, d_model, nhead, dim_feedforward=2048, dropout=0.1):
         super(TransformerEncoderLayer, self).__init__()
@@ -75,6 +51,27 @@ class TransformerEncoderLayer(nn.Module):
         src = self.norm2(src)
         return src
 
+class TransformerDecoder(nn.Module):
+    def __init__(self, decoder_layer, num_layers, norm=None):
+        super(TransformerDecoder, self).__init__()
+        self.layers = _get_clones(decoder_layer, num_layers)
+        self.num_layers = num_layers
+        self.norm = norm
+
+    def forward(self, target, memory, target_mask=None, memory_mask=None, target_key_padding_mask=None,
+                memory_key_padding_mask=None):
+        output = target
+
+        for i in range(self.num_layers):
+            output = self.layers[i](output, memory, target_mask=target_mask,
+                                    memory_mask=memory_mask,
+                                    target_key_padding_mask=target_key_padding_mask,
+                                    memory_key_padding_mask=memory_key_padding_mask)
+
+        if self.norm:
+            output = self.norm(output)
+
+        return output
 
 class TransformerDecoderLayer(nn.Module):
     def __init__(self, d_model, nhead, dim_feedforward=2048, dropout=0.1):
